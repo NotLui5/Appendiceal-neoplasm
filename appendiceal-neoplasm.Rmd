@@ -1,0 +1,128 @@
+---
+title: "liposomal bupivacaine vs others"
+knit: (function(inputFile, encoding) { rmarkdown::render(inputFile, encoding = encoding,
+      output_file = paste0(dirname(inputFile),'/README.md')) })
+output: github_document
+---
+```{r packages, include=FALSE}
+library(metafor)
+library(openxlsx)
+library(forestplot)
+library(dplyr)
+
+knitr::opts_chunk$set(fig.path = "Dic Output Figures/", dev='svg') # dev = 'png'
+
+```
+
+```{r cleaning of Dichotomus outcomes, include=FALSE}
+dat <- read.xlsx("Data extraction.xlsx", sheet = 3)
+data <- dat[-c(3,4),-c(5,11)]
+rownames(data) <- NULL
+names(data) <- c('author', 'int', 'comp', 'outc', 'tpart', 'n1', 'n2', 'e1', 'e2')
+table(data$author)
+data$author[data$author == '1503'] <- 'Westfall, et. al'
+data$author[data$author == '188'] <- 'Bolmers, et. al'
+data$author[data$author == '823'] <- 'Lietzén, et. al'
+data$author[data$author == '841'] <- 'Loftus, et. al'
+data$author[data$author == '36'] <-'Alajääski et. al'
+data$author[data$author == '213'] <- 'Brunner et. al'
+data$author[data$author == '1360'] <- 'Sugimoto et. al'
+  
+```
+
+```{r or_dichotomus outcomes_adverse effects, include=FALSE}
+dat_an <- escalc(measure="OR", ai=n1, bi=n2,
+              ci=e1, di=e2, data=data)
+dat_an <- summary(dat_an)
+
+```
+
+```{r meta_dichotomus outcomes, include=FALSE}
+meta_datan_reml <- rma(yi, vi, method="REML", data=dat_an, test='knha')
+
+```
+
+```{r predict_dichotomus outcomes, include=FALSE}
+meta_an <- predict(meta_datan_reml, transf = exp, digits = 2)
+
+```
+
+<br>
+<h2>Appendiceal-neoplasm Dichotomus Data</h2>
+
+
+<details>
+
+<summary><b>Figure A -</b> Appendiceal neoplasm with complicated vs uncomplicated apendicitis </summary>
+<br>
+
+```{r graph_REML, echo=FALSE, fig.height = 2.8, fig.width = 15.2}
+col1f <- c("Author", dat_an$author, 
+      paste("Overall Odds Ratio for", meta_datan_reml$k, "studies"),
+      paste("(Tau^2 = ", (formatC(meta_datan_reml$tau2, digits=2, format="f")), ", df = ", 
+            (meta_datan_reml$parms),
+            ", p ", (ifelse(meta_datan_reml$QEp < 0.001, 
+                            paste("< 0.001"),
+                            paste("= ", formatC(meta_datan_reml$QEp, digits=3, format="f")))),
+            "; ", "I^2", " = ", (formatC(meta_datan_reml$I2, digits=1, format="f")), "%)"))
+
+col2f <- c("Complicated appendicitis (n/N)",
+      paste(dat_an$e1,"/", dat_an$n1), paste0(sum(dat_an$e1), " / ", sum(dat_an$n1)), NA)
+
+col3f <- c("Uncomplicated appendicitis (n/N)",
+      paste(dat_an$e2,"/", dat_an$n2), paste0(sum(dat_an$e2), " / ", sum(dat_an$n2)), NA)
+
+
+col4f <- c("Odds Ratio (95% CI)", paste0(formatC(exp(dat_an$yi), digits = 2, format = "f"), 
+                                        " ( ",formatC(exp(dat_an$ci.lb), format='f', digits=2),
+                                        " - ", formatC(exp(dat_an$ci.ub), format='f',digits=2), " ) "),
+          paste(formatC(meta_an$pred, format = 'f', digits=2),
+            "(", formatC(meta_an$ci.lb, format = 'f', digits = 2),
+            "-", formatC(meta_an$ci.ub, format = 'f', digits = 2), ")"), NA)
+
+col5f <- c("Weight(%)", paste(formatC(weights(meta_datan_reml), format='f', digits = 1),'%'), NA, NA)
+
+text1f <- cbind(col1f, col2f, col3f, col4f, col5f)
+
+cf <- structure(list(
+          mean = c(NA, exp(dat_an$yi), meta_an$pred, NA),
+          lower = c(NA, exp(dat_an$ci.lb), meta_an$ci.lb, NA),
+          upper = c(NA, exp(dat_an$ci.ub), meta_an$ci.ub, NA)),
+          .Names = c("mean", "lower", "upper"),
+          row.names = c(NA, -1L*nrow(text1f)),
+          class = "data.frame")
+
+sizes1f <- c(NA, (weights(meta_datan_reml)*0.014), 1, NA)
+names(sizes1f) <- NULL
+
+plotf <- forestplot(text1f, 
+             graph.pos = 4,
+             zero = 1,
+             cf,
+             new_page = TRUE,
+             colgap = unit(5, "mm"),
+             hrzl_lines = list("2" = gpar (lwd=1, columns=1:6, col="black")),
+             lineheight=unit(0.7,'cm'),
+             boxsize = sizes1f,
+             is.summary = c(T, rep(F, 7), T, T),
+             align = c('l', rep('c', 2), 'l', 'l'),
+             ci.vertices = TRUE,
+             txt_gp = fpTxtGp(label = gpar (cex=0.9), 
+                              ticks = gpar(cex = 0.9, fontface="bold"),
+                              summary = gpar(cex = 0.9),
+                              xlab = gpar(cex=0.9)),
+             xticks = c(0.02, 0.1, 0.3, 1, 2.6, 5.2),
+             xlog=TRUE,
+             clip = c(0.02, 5.2),
+             grid = c(0.02, 0.1, 0.3, 2.6, 5.2),
+             lwd.xaxis = 1,
+             lwd.ci = 2.2,
+             lwd.zero = 2,
+             graphwidth = unit(10,"cm"),
+             col=fpColors(box="black",line="grey", zero = 'dodgerblue4', axes="grey20", summary="black"))
+plotf
+
+```
+
+</details>
+
