@@ -21,7 +21,7 @@ knitr::opts_chunk$set(fig.path = "Dic Output Figures/", dev='svg') # dev = 'png'
 
 ```{r cleaning of Dichotomus outcomes, include=FALSE}
 dat <- read.xlsx("Data extraction.xlsx", sheet = 3)
-data <- dat[-c(3,4),-c(5,11)]
+data <- dat[-c(2:4),-c(5,11)]
 rownames(data) <- NULL
 names(data) <- c('author', 'int', 'comp', 'outc', 'tpart', 'n1', 'n2', 'e1', 'e2')
 table(data$author)
@@ -61,7 +61,7 @@ meta_an <- predict(meta_datan_reml, transf = exp, digits = 2)
 <summary><b>Figure A -</b> Appendiceal neoplasm with complicated vs uncomplicated apendicitis </summary>
 <br>
 
-```{r graph_REML, echo=FALSE, fig.height = 2.8, fig.width = 15.2}
+```{r graph_REML, echo=FALSE, fig.height = 2.8, fig.width = 15.6}
 col1f <- c("Author", dat_an$author, 
       paste("Overall Odds Ratio for", meta_datan_reml$k, "studies"),
       paste("(Tau^2 = ", (formatC(meta_datan_reml$tau2, digits=2, format="f")), ", df = ", 
@@ -74,7 +74,7 @@ col1f <- c("Author", dat_an$author,
 col2f <- c("Complicated appendicitis (n/N)",
       paste(dat_an$e1,"/", dat_an$n1), paste0(sum(dat_an$e1), " / ", sum(dat_an$n1)), NA)
 
-col3f <- c("Uncomplicated appendicitis (n/N)",
+col3f <- c("Non-complicated appendicitis (n/N)",
       paste(dat_an$e2,"/", dat_an$n2), paste0(sum(dat_an$e2), " / ", sum(dat_an$n2)), NA)
 
 
