@@ -21,7 +21,7 @@ knitr::opts_chunk$set(fig.path = "Dic Output Figures/", dev='svg') # dev = 'png'
 
 ```{r cleaning of Dichotomus outcomes, include=FALSE}
 dat <- read.xlsx("Data extraction.xlsx", sheet = 3)
-data <- dat[-c(2:4),-c(5,11)]
+data <- dat[-c(2:5),-c(5,11)]
 rownames(data) <- NULL
 names(data) <- c('author', 'int', 'comp', 'outc', 'tpart', 'n1', 'n2', 'e1', 'e2')
 table(data$author)
@@ -109,7 +109,7 @@ plotf <- forestplot(text1f,
              hrzl_lines = list("2" = gpar (lwd=1, columns=1:6, col="black")),
              lineheight=unit(0.7,'cm'),
              boxsize = sizes1f,
-             is.summary = c(T, rep(F, 7), T, T),
+             is.summary = c(T, rep(F, 6), T, T),
              align = c('l', rep('c', 2), 'l', 'l'),
              ci.vertices = TRUE,
              txt_gp = fpTxtGp(label = gpar (cex=0.9), 
